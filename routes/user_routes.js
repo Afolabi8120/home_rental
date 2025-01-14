@@ -221,9 +221,17 @@ router.put('/users/:id', async (req, res) => {
             phone: phone,
         });
 
-        console.log(newUser);
+        console.log(id);
 
-        const result = await User.findByIdAndUpdate({ _id: id }, { newUser });
+        const result = await User.findByIdAndUpdate(id, 
+            {
+               $set : {
+                    username: username,
+                    firstname: firstname,
+                    lastname: lastname,
+                    phone: phone
+                }
+            });
 
         if(!result) {
             return res.status(200).json({message: "Failed to update account"});
