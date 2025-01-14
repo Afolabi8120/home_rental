@@ -39,7 +39,7 @@ router.post('/register', async (req, res) => {
 
         // data validating 
         if(username == "") {
-            return res.json({message: "Username field is required"});
+            return res.status(400).json({message: "Username field is required"});
         }
 
         if(firstname == "") {
@@ -47,24 +47,23 @@ router.post('/register', async (req, res) => {
         }
 
         if(lastname == "") {
-            res.json({message: "Lastname field is required"});
-            return;
+            return res.status(400).json({message: "Lastname field is required"});
         }
 
         if(email == "") {
-            return res.json({message: "Email field is required"});
+            return res.status(400).json({message: "Email field is required"});
         }
 
         if(usertype == "") {
-            return res.json({message: "Usertype field is required"});
+            return res.status(400).json({message: "Usertype field is required"});
         }
 
         if(password == "") {
-            return res.json({message: "Password field is required"});
+            return res.status(400).json({message: "Password field is required"});
         }
 
         if(password.length < 8) {
-            return res.json({message: "Password length should be more that 7 characters!"});
+            return res.status(400).json({message: "Password length should be more that 7 characters!"});
         }
 
         if(checkUsername){
@@ -72,11 +71,11 @@ router.post('/register', async (req, res) => {
         }
 
         if(checkEmail){
-            return res.json({message: "Email address already in use!"});
+            return res.status(400).json({message: "Email address already in use!"});
         }
 
         if(checkPhone){
-            return res.json({message: "Phone number already in use!"});
+            return res.status(400).json({message: "Phone number already in use!"});
         }
 
         const hashPassword = bcrypt.hashSync(password, 10);
@@ -88,7 +87,7 @@ router.post('/register', async (req, res) => {
             email: email.toLowerCase(),
             phone: phone.toLowerCase(),
             usertype: usertype.toLowerCase(),
-            password: hashPassword.toLowerCase(),
+            password: hashPassword,
             status: '0'
         });
         
@@ -157,7 +156,7 @@ router.get('/users/:id', async (req, res) => {
 
         // data validating 
         if(id == "") {
-            res.json({message: "User ID cannot be found"});
+            res.status(400).json({message: "User ID cannot be found"});
             return;
         }
 
@@ -191,36 +190,28 @@ router.put('/users/:id', async (req, res) => {
 
         // data validating 
         if(id == "") {
-            return res.json({message: "User ID cannot be found"});
+            return res.status(400).json({message: "User ID cannot be found"});
         }
 
         if(username == "") {
-            return res.json({message: "Username field is required"});
+            return res.status(400).json({message: "Username field is required"});
         }
 
         if(firstname == "") {
-            return res.json({message: "Firstname field is required"});
+            return res.status(400).json({message: "Firstname field is required"});
         }
 
         if(lastname == "") {
-            return res.json({message: "Lastname field is required"});
+            return res.status(400).json({message: "Lastname field is required"});
         }
 
         if(email == "") {
-            return res.json({message: "Email address field is required"});
+            return res.status(400).json({message: "Email address field is required"});
         }
 
         if(phone.length < 11 && phone.length > 13) {
-            return res.json({message: "Phone number length should be not be more than 13 digits and less than 11 digits!"});
+            return res.status(400).json({message: "Phone number length should be not be more than 13 digits and less than 11 digits!"});
         }
-
-        const newUser = new User({
-            username: username,
-            firstname: firstname,
-            lastname: lastname,
-            phone: phone,
-            email: email
-        });
 
         console.log(id);
 
@@ -236,7 +227,69 @@ router.put('/users/:id', async (req, res) => {
             });
 
         if(!result) {
-            return res.status(200).json({message: "Failed to update account"});
+            return res.status(400).json({message: "Failed to update account"});
+        }
+
+        return res.status(200).json({message: "Account successfully updated"});
+
+    } catch (err) {
+        return res.status(500).json({message: err.message});
+    }
+    
+});
+
+// update a user password
+router.put('/change_password/:id', async (req, res) => {
+
+    try {
+
+        const id = req.params.id;
+        const password = req.body.password;
+        const cpassword = req.body.cpassword;
+
+        const userData = await User.findOne({ _id: id});
+
+        // data validating 
+        if(id == "") {
+            return res.status(400).json({message: "User ID cannot be found"});
+        }
+
+        if(password == "") {
+            return res.status(400).json({message: "Password field is required"});
+        }
+
+        if(cpassword == "") {
+            return res.status(400).json({message: "Confirm password field is required"});
+        }
+
+        if(password != cpassword) {
+            return res.status(400).json({message: "Both password do not match!"});
+        }
+
+        if(password.length < 8 ) {
+            return res.status(400).json({message: "Phone number length should be not be more than 7 digits!"});
+        }
+
+        console.log(userData);
+
+        // compare password 
+        const fetchedPassword = bcrypt.compareSync(password, userData.password);
+
+        if(!fetchedPassword) {
+            return res.status(400).json({message: "Old password do not match!"});
+        }
+
+        const hashPassword = bcrypt.hashSync(password, 10);
+
+        const result = await User.findByIdAndUpdate(id, 
+            {
+               $set : {
+                    password: hashPassword
+                }
+            });
+
+        if(!result) {
+            return res.status(400).json({message: "Failed to update account"});
         }
 
         return res.status(200).json({message: "Account successfully updated"});
