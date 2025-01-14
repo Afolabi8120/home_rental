@@ -187,31 +187,31 @@ router.put('/users/:id', async (req, res) => {
         const firstname = req.body.firstname;
         const lastname = req.body.lastname;
         const phone = req.body.phone;
+        const email = req.body.email;
 
         // data validating 
         if(id == "") {
-            res.json({message: "User ID cannot be found"});
-            return;
+            return res.json({message: "User ID cannot be found"});
         }
 
         if(username == "") {
-            res.json({message: "Username field is required"});
-            return;
+            return res.json({message: "Username field is required"});
         }
 
         if(firstname == "") {
-            res.json({message: "Firstname field is required"});
-            return;
+            return res.json({message: "Firstname field is required"});
         }
 
         if(lastname == "") {
-            res.json({message: "Lastname field is required"});
-            return;
+            return res.json({message: "Lastname field is required"});
+        }
+
+        if(email == "") {
+            return res.json({message: "Email address field is required"});
         }
 
         if(phone.length < 11 && phone.length > 13) {
-            res.json({message: "Phone number length should be not be more than 13 digits and less than 11 digits!"});
-            return;
+            return res.json({message: "Phone number length should be not be more than 13 digits and less than 11 digits!"});
         }
 
         const newUser = new User({
@@ -219,6 +219,7 @@ router.put('/users/:id', async (req, res) => {
             firstname: firstname,
             lastname: lastname,
             phone: phone,
+            email: email
         });
 
         console.log(id);
@@ -229,17 +230,14 @@ router.put('/users/:id', async (req, res) => {
                     username: username,
                     firstname: firstname,
                     lastname: lastname,
-                    phone: phone
+                    phone: phone,
+                    email: email
                 }
             });
 
         if(!result) {
             return res.status(200).json({message: "Failed to update account"});
         }
-
-        // const updatedUser = await User.findById(id);
-
-        // console.log(updatedUser);
 
         return res.status(200).json({message: "Account successfully updated"});
 
