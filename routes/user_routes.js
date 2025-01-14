@@ -244,6 +244,7 @@ router.put('/change_password/:id', async (req, res) => {
     try {
 
         const id = req.params.id;
+        const oldpassword = req.body.oldpassword;
         const password = req.body.password;
         const cpassword = req.body.cpassword;
 
@@ -252,6 +253,10 @@ router.put('/change_password/:id', async (req, res) => {
         // data validating 
         if(id == "") {
             return res.status(400).json({message: "User ID cannot be found"});
+        }
+
+        if(oldpassword == "") {
+            return res.status(400).json({message: "Old password field is required"});
         }
 
         if(password == "") {
@@ -270,13 +275,13 @@ router.put('/change_password/:id', async (req, res) => {
             return res.status(400).json({message: "Phone number length should be not be more than 7 digits!"});
         }
 
-        console.log(userData);
-
         // compare password 
-        const fetchedPassword = bcrypt.compareSync(password, userData.password);
+        const fetchedPassword = bcrypt.compareSync(oldpassword, userData.password);
+
+        console.log(fetchedPassword);
 
         if(!fetchedPassword) {
-            return res.status(400).json({message: "Old password do not match!"});
+            return res.status(400).json({ message: "Old password do not match!" });
         }
 
         const hashPassword = bcrypt.hashSync(password, 10);
@@ -292,7 +297,7 @@ router.put('/change_password/:id', async (req, res) => {
             return res.status(400).json({message: "Failed to update account"});
         }
 
-        return res.status(200).json({message: "Account successfully updated"});
+        return res.status(200).json({message: "Password successfully updated"});
 
     } catch (err) {
         return res.status(500).json({message: err.message});
